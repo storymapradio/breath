@@ -36,9 +36,9 @@ The microphone needs the page to come from `https://` or `localhost`, so opening
 
 ## How this version works
 
-This is the same code as the instrument on asynchronousinstruments.com, published from that project as the instrument grows. Where the site keeps its takes and texts in a shared database, this version keeps them in your own browser: `local/local-supabase.js` answers the same calls from IndexedDB on your device, and `local/local.js` holds the few things this instrument needs from it.
+This is the same code as the instrument on asynchronousinstruments.com, published from that project as the instrument grows. Where the site keeps what people make in a shared database, this version keeps it in your own browser: `local/local-supabase.js` answers the same calls from IndexedDB on your device, and `local/local.js` holds the few things this instrument needs from it.
 
-There is no login, no account and no server. Nothing you record or write leaves your device. Clearing this site's data in your browser clears what you have made here.
+There is no login, no account and no server. This page uploads nothing you record or write: it all stays in this browser, and clearing this site's data in your browser clears it.
 
 &nbsp;
 
