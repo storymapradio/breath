@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<title>Breath · Asynchronous Instruments</title>
+<meta name="description" content="Hold to breathe in, let go to breathe out, and speak. Each take keeps your voice and the imprint of your breath together.">
+<meta name="theme-color" content="#0e0f0d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&family=Pixelify+Sans:wght@400;600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&display=swap">
+<script src="shared/skin-kit.js?v=1791871143"></script>
+<link rel="stylesheet" href="shared/skin-kit.css?v=1791871143">
+<style>
+/* Breath: the icons along the top, then two windows. The gauge above, where the circle fills and empties;
+   the shape below, which breathes with you, with a take, or on its own with the guide. */
+:root { --m:24px; --top:58px; --r:18px; --gap:14px; --b:54px; --green:#3fbf6f; }
+html[data-skin="paper"] { --r:4px; --green:#2f7a45; }
+html[data-skin="studio"] { --green:#1f9a52; }
+html[data-skin="cassette"] { --r:10px; }
+html[data-skin="balatro"] { --r:16px; }
+html.row2 { --top:94px; }
+@media (max-width:760px) { :root { --m:14px; --gap:12px; } html.row2 { --top:88px; } }
+html, body { height:100%; }
+body { overflow:hidden; overscroll-behavior:none; }
+html.embed .corner, html.embed #topRight, html.embed .corner-band { display:none !important; }
+html.embed { --top:54px; }
+
+/* ── the top bar: icons between the corners, as on the Story Map ── */
+.topbar { position:fixed; top:0; left:240px; right:140px; height:52px; z-index:8995; display:flex; align-items:center; justify-content:flex-start;
+  overflow-x:auto; overflow-y:hidden; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.topbar::-webkit-scrollbar { display:none; }
+html.row2 .topbar { top:46px; left:6px; right:6px; height:44px; }
+@media (max-width:760px) { html.row2 .topbar { top:42px; left:2px; right:2px; } }
+html.embed .topbar { left:6px; right:6px; }
+.tb-set { display:flex; align-items:center; gap:var(--tbg, 3px); flex:0 0 auto; margin:0 auto; padding:0 4px; }
+.tb-grp { display:flex; align-items:center; gap:var(--tbg, 3px); }
+.tb-grp[hidden] { display:none; }
+.tb { position:relative; min-width:var(--tbw, 34px); height:38px; flex:0 0 auto; border:0; border-radius:10px; background:none; color:var(--sol-dim); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:3px; padding:0 3px; font:inherit; transition:color .15s, background .15s;
+  -webkit-tap-highlight-color:transparent; outline:none; }
+.tb svg { width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; display:block;
+  transition:transform .18s cubic-bezier(.32,.72,0,1), filter .2s; }
+@media (hover:hover) { .tb:hover:not(:disabled) { color:var(--sol-tx); } .tb:hover:not(:disabled) svg { transform:scale(1.12); } }
+.tb:active:not(:disabled) svg { transform:scale(.9); }
+.tb:focus-visible { color:var(--sol-tx); background:var(--amber-faint); }
+.tb:disabled { opacity:.32; cursor:default; }
+.tb.on { color:var(--amber); }
+.tb.on::after { content:''; position:absolute; left:50%; bottom:1px; width:4px; height:4px; margin-left:-2px; border-radius:50%; background:var(--amber); }
+.tb.open { background:var(--amber-faint); color:var(--amber); }
+.tb .lab { font-size:14px; line-height:1; letter-spacing:.02em; color:inherit; font-variant-numeric:tabular-nums; }
+html[data-skin="solos"] .tb .lab, html[data-skin="balatro"] .tb .lab, html[data-skin="cassette"] .tb .lab { font-size:17px; }
+html[data-skin="studio"] .tb .lab { font-size:12.5px; font-weight:700; }
+#tbRec svg circle { fill:#e5483b; stroke:#e5483b; }
+#tbRec { color:#e5483b; }
+#tbRec.on { color:#ff5046; animation:tbPulse 1.3s ease-in-out infinite; }
+#tbRec.on::after { display:none; }
+@keyframes tbPulse { 0%,100% { filter:drop-shadow(0 0 0 rgba(255,80,70,0)); } 50% { filter:drop-shadow(0 0 6px rgba(255,80,70,.9)); } }
+#tbPlay svg path { fill:var(--green); stroke:var(--green); }
+#tbPlay.on::after { background:var(--green); }
+#tbEar.on svg { filter:drop-shadow(0 0 calc(var(--lv, 0) * 9px) var(--amber)); }
+.tb-sep { width:1px; height:18px; flex:0 0 auto; background:var(--sol-line); margin:0 4px; opacity:.7; }
+@media (max-width:480px) {
+  .tb-set { --tbw:30px; --tbg:1px; padding:0 2px; }
+  .tb { height:36px; padding:0 2px; }
+  .tb svg { width:19px; height:19px; }
+  .tb-sep { margin:0 2px; }
+  .tb-time { gap:5px; padding:0 3px; }
+  .tb-time .lamp { width:7px; height:7px; }
+  .clock { font-size:16px !important; }
+  html[data-skin="studio"] .clock { font-size:13px !important; }
+}
+.tb-time { display:flex; align-items:center; gap:7px; padding:0 6px 0 4px; flex:0 0 auto; }
+.lamp { width:9px; height:9px; border-radius:50%; border:1.25px solid var(--ink-mid); transition:background .2s, border-color .2s, box-shadow .2s; }
+.lamp.armed { border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-faint); }
+.lamp.rec { background:#ff5046; border-color:#ff5046; box-shadow:0 0 12px rgba(255,80,70,.7); }
+.lamp.paused { background:#ff5046; border-color:#ff5046; animation:blink 1.1s steps(2, jump-none) infinite; }
+.lamp.ear { border-color:var(--amber); }
+@keyframes blink { 50% { opacity:.2; } }
+.clock { font-size:19px; letter-spacing:.06em; color:var(--amber); font-variant-numeric:tabular-nums; white-space:nowrap; }
+html[data-skin="studio"] .clock { font-size:14px; font-weight:700; letter-spacing:.02em; }
+/* every icon is dealt in, one after another */
+.tb-set > * { animation:tbIn .45s cubic-bezier(.32,.72,0,1) backwards; animation-delay:calc(var(--i, 0) * 28ms + 120ms); }
+@keyframes tbIn { from { opacity:0; transform:translateY(-12px) scale(.5); } 60% { opacity:1; } to { opacity:1; transform:none; } }
+/* a name beneath an icon, on hover, or for a moment after a tap */
+.tb-tip { position:fixed; top:48px; z-index:9930; transform:translate(-50%, -4px); font-size:13px; line-height:1; letter-spacing:.06em; text-transform:lowercase;
+  color:var(--sol-tx); background:var(--glass); border:1px solid var(--sol-line); border-radius:7px; padding:6px 9px 5px; white-space:nowrap; pointer-events:none;
+  opacity:0; transition:opacity .15s, transform .15s; }
+html[data-skin="studio"] .tb-tip { font-size:11px; font-weight:700; }
+.tb-tip.on { opacity:1; transform:translate(-50%, 0); }
+
+/* a tray drops beneath an icon: the shapes, the dial's time, the guide's pace */
+.tray { position:fixed; z-index:9920; display:flex; gap:6px; padding:8px; border-radius:16px; background:var(--glass); border:1.25px solid var(--sol-line);
+  box-shadow:0 14px 34px rgba(0,0,0,.22); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); max-width:calc(100vw - 16px); overflow-x:auto; scrollbar-width:none; }
+.tray::-webkit-scrollbar { display:none; }
+html[data-skin="paper"] .tray { border-radius:3px; box-shadow:4px 4px 0 rgba(29,27,24,.14); }
+.tray[hidden] { display:none; }
+.tray > button { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-width:64px; min-height:40px; padding:8px 10px 7px;
+  border-radius:11px; border:1.25px solid transparent; background:none; color:var(--sol-dim); font:inherit; font-size:14px; line-height:1.1; cursor:pointer;
+  animation:tbIn .38s cubic-bezier(.32,.72,0,1) backwards; animation-delay:calc(var(--i, 0) * 30ms); transition:color .15s, border-color .15s, background .15s; }
+html[data-skin="solos"] .tray > button, html[data-skin="balatro"] .tray > button, html[data-skin="cassette"] .tray > button { font-size:17px; }
+html[data-skin="studio"] .tray > button { font-size:12.5px; font-weight:700; }
+.tray > button svg { width:30px; height:30px; fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; stroke-linejoin:round; transition:transform .18s; }
+@media (hover:hover) { .tray > button:hover { color:var(--sol-tx); background:var(--amber-faint); } .tray > button:hover svg { transform:scale(1.1); } }
+.tray > button.on { color:var(--amber); border-color:var(--amber-dim); background:var(--amber-faint); }
+.tray > button small { font-size:.82em; opacity:.7; letter-spacing:.04em; }
+/* on a phone the tray folds into rows, so every choice is in view */
+@media (max-width:520px) { .tray { flex-wrap:wrap; justify-content:center; width:calc(100vw - 16px); } .tray > button { flex:1 1 28%; } }
+
+#instrument { position:fixed; left:0; right:0; margin:0 auto; width:min(700px, calc(100% - 2 * var(--m)));
+  top:calc(var(--top) + env(safe-area-inset-top, 0px)); bottom:calc(var(--m) + env(safe-area-inset-bottom, 0px));
+  display:grid; grid-template-rows:minmax(0, 1.4fr) minmax(170px, 1fr); gap:var(--gap); z-index:1; }
+
+/* the two windows, each a rounded frame drawn in hairlines */
+.pane { position:relative; min-height:0; border-radius:var(--r); background:var(--glass); }
+html[data-skin="studio"] .pane { box-shadow:0 1px 2px rgba(20,17,15,.04), 0 10px 28px rgba(20,17,15,.07); }
+html[data-skin="paper"] .pane { box-shadow:4px 4px 0 rgba(29,27,24,.12); }
+html[data-skin="solos"] .pane, html[data-skin="balatro"] .pane { backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); box-shadow:0 6px 0 rgba(0,0,0,.45); }
+html[data-skin="cassette"] .pane { box-shadow:inset 0 0 0 1px rgba(0,0,0,.4), 0 5px 0 rgba(0,0,0,.4); }
+.pane > svg.frame { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:4; }
+.pane > svg.frame path { fill:none; stroke:var(--frame-ink, var(--ink-mid)); stroke-width:1.25; stroke-dasharray:1 1; stroke-dashoffset:1;
+  animation:draw .95s cubic-bezier(.6,.05,.3,1) forwards; animation-delay:calc(var(--k) * 1s); transition:stroke .25s; }
+.pane > svg.frame path + path { stroke:var(--frame-ink2, var(--ink-lo)); }
+@keyframes draw { to { stroke-dashoffset:0; } }
+.rise { animation:rise .7s .3s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes rise { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+/* ── the gauge ── */
+#gauge { display:grid; grid-template-rows:minmax(0, 1fr) auto auto; overflow:hidden; }
+.stage { position:relative; min-height:0; z-index:1; }
+.stage canvas { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); display:block; }
+.hub { position:absolute; left:50%; top:50%; width:0; height:0; z-index:2; }
+
+/* the one button in the middle: arm, record, pause and record again; or play and pause a take */
+#core { position:absolute; left:0; top:0; transform:translate(-50%, -50%); width:var(--b); height:var(--b); border-radius:50%; border:2px solid var(--ink-lo);
+  background:var(--glass); color:var(--sol-tx); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
+  box-shadow:0 3px 0 rgba(0,0,0,.5); transition:transform .12s, border-color .18s, color .18s, background .18s, box-shadow .18s; }
+html[data-skin="studio"] #core { box-shadow:0 2px 0 var(--ink-lo); }
+html[data-skin="paper"] #core { box-shadow:2px 2px 0 rgba(29,27,24,.18); border-width:1.5px; border-color:var(--ink-mid); }
+#core:active { transform:translate(-50%, calc(-50% + 2px)); }
+#core svg { width:20px; height:20px; }
+#core:disabled { opacity:.35; cursor:default; }
+#core.on { border-color:var(--amber); color:var(--amber); background:var(--amber-faint); box-shadow:0 3px 0 rgba(0,0,0,.5), 0 0 20px var(--amber-dim); }
+#core.red { color:#e5483b; }
+#core.green { color:var(--green); }
+html[data-skin="studio"] #core.on, html[data-skin="paper"] #core.on { box-shadow:0 0 0 4px var(--amber-faint); }
+
+.readout { position:relative; z-index:2; min-height:22px; padding:0 14px; text-align:center; font-size:14px; letter-spacing:.04em; color:var(--sol-faint);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-variant-numeric:tabular-nums; }
+.readout b { font-weight:inherit; color:var(--amber); }
+html[data-skin="solos"] .readout { font-size:18px; }
+
+/* the takes: a shelf of small cards, newest first */
+.rail { position:relative; z-index:2; display:flex; gap:10px; overflow-x:auto; overflow-y:hidden; padding:10px 16px 14px; scroll-snap-type:x proximity;
+  scroll-padding:0 16px; cursor:grab; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.rail::-webkit-scrollbar { display:none; }
+.rail.dragging { cursor:grabbing; scroll-snap-type:none; }
+.rail.dim .take { opacity:.4; pointer-events:none; }
+.take { position:relative; flex:0 0 auto; width:176px; height:60px; display:grid; grid-template-columns:42px minmax(0, 1fr); gap:9px; align-items:center;
+  padding:0 10px 0 8px; border:1.25px solid var(--ink-lo); border-radius:12px; background:var(--glass); color:var(--sol-dim); cursor:pointer;
+  scroll-snap-align:start; text-align:left; font-size:13px; line-height:1.3; user-select:none; -webkit-user-select:none;
+  transition:transform .18s, border-color .18s, box-shadow .18s, opacity .2s; }
+.take.fresh { animation:card .45s cubic-bezier(.2,.9,.25,1.2) both; }
+@keyframes card { from { opacity:0; transform:translateY(8px) scale(.96); } to { opacity:1; transform:none; } }
+html[data-skin="paper"] .take { border-radius:2px; }
+html[data-skin="solos"] .take { font-size:16px; line-height:1.15; }
+.take:hover { transform:translateY(-2px); border-color:var(--ink-mid); }
+.take.on { border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-faint); }
+.take svg.ros { width:42px; height:42px; overflow:visible; }
+.take svg.ros path { fill:none; stroke:var(--ink-mid); stroke-width:1.1; stroke-linejoin:round; }
+.take svg.ros circle { fill:none; stroke:var(--ink-lo); stroke-width:1; stroke-dasharray:1.5 2.5; }
+.take.on svg.ros path { stroke:var(--amber); }
+.take .meta { min-width:0; display:flex; flex-direction:column; }
+.take .meta b { font-weight:inherit; color:var(--sol-tx); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+html[data-skin="studio"] .take .meta b { font-weight:700; }
+.take .meta span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.take .tag { color:var(--amber); }
+.take .tag button, .empty button { font:inherit; color:var(--amber); background:none; border:0; padding:0; cursor:pointer; text-decoration:underline; text-underline-offset:.15em; }
+.take.pend { border-style:dashed; border-color:var(--amber-dim); }
+.take .erase { position:absolute; top:-9px; right:-9px; min-width:24px; height:24px; padding:0 7px; border-radius:999px; border:1.25px solid var(--ink-mid);
+  background:var(--glass); color:var(--sol-dim); font:inherit; font-size:14px; line-height:20px; cursor:pointer; }
+.take .erase.sure { border-color:#ff5046; color:#ff5046; font-size:12px; letter-spacing:.06em; }
+.take.skel { cursor:default; animation:skel 1.4s ease-in-out infinite; }
+.take.skel i { display:block; width:42px; height:42px; border-radius:50%; border:1px dashed var(--ink-lo); }
+.take.skel u { display:block; height:8px; border-radius:4px; background:var(--ink-lo); margin:4px 0; text-decoration:none; }
+@keyframes skel { 50% { opacity:.45; } }
+.empty { flex:0 0 auto; display:flex; align-items:center; gap:10px; height:60px; padding:0 16px; border:1.25px dashed var(--ink-lo); border-radius:12px;
+  color:var(--sol-faint); font-size:14px; white-space:nowrap; }
+html[data-skin="paper"] .empty { border-radius:2px; }
+
+/* ── the shape: hold anywhere in this window ── */
+#pad { overflow:hidden; cursor:pointer; outline:none; touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent; }
+#pad::after { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--amber-faint); opacity:0; transition:opacity .4s; pointer-events:none; }
+#pad.held::after { opacity:1; transition:opacity .15s; }
+#pad.heard::after { opacity:.6; }
+#pad.held, #pad.heard { --frame-ink:var(--amber); --frame-ink2:var(--amber-dim); }
+#pad:focus-visible { --frame-ink:var(--amber); }
+#pad canvas { position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none; }
+#pad .plate { position:absolute; top:14px; left:17px; font-size:12px; letter-spacing:.24em; text-transform:uppercase; color:var(--sol-faint); pointer-events:none; z-index:2; }
+html[data-skin="solos"] #pad .plate { font-size:15px; }
+html[data-skin="paper"] #pad .plate { font-style:italic; text-transform:none; letter-spacing:.04em; font-size:16px; }
+#pad .say { position:absolute; left:12px; right:12px; bottom:14px; text-align:center; pointer-events:none; z-index:2; }
+#pad .say p { max-width:none; margin:0 auto; font-size:18px; line-height:1.3; color:var(--sol-dim); font-variant-numeric:tabular-nums; transition:color .3s; }
+#pad .say p + p { font-size:13px; color:var(--sol-faint); margin-top:3px; display:none; }
+#pad.guiding .say p:first-child { color:var(--amber); }
+html[data-skin="solos"] #pad .say p { font-size:22px; }
+html[data-skin="solos"] #pad .say p + p { font-size:16px; }
+html[data-skin="studio"] #pad .say p { font-size:16px; font-weight:500; }
+html[data-skin="cassette"] #pad .say p { font-size:15px; }
+@media (hover:hover) and (pointer:fine) { #pad .say p + p { display:block; } }
+#pad.guiding .say p + p { visibility:hidden; }
+@media (max-width:480px) { html[data-skin="solos"] #pad .say p, html[data-skin="balatro"] #pad .say p { font-size:18px; } }
+@media (max-width:380px) { #pad .say p, html[data-skin="solos"] #pad .say p { font-size:16px; } }
+
+/* the guide's start, in the shape's own window */
+#padGo { position:absolute; top:10px; right:12px; z-index:3; display:flex; align-items:center; gap:8px; height:40px; padding:0 6px 0 12px; border-radius:999px;
+  border:1.5px solid var(--ink-lo); background:var(--glass); color:var(--sol-dim); font:inherit; font-size:14px; letter-spacing:.04em; cursor:pointer;
+  transition:border-color .18s, color .18s, background .18s, box-shadow .18s, transform .12s; font-variant-numeric:tabular-nums; }
+html[data-skin="solos"] #padGo, html[data-skin="balatro"] #padGo, html[data-skin="cassette"] #padGo { font-size:17px; }
+html[data-skin="studio"] #padGo { font-size:12.5px; font-weight:700; }
+html[data-skin="paper"] #padGo { border-radius:3px; }
+#padGo i { position:relative; display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; border:1.5px solid currentColor; }
+#padGo i::before { content:''; position:absolute; inset:-5px; border-radius:50%; border:1.25px solid var(--amber); opacity:0; transform:scale(calc(.7 + var(--g, 0) * .45)); }
+#padGo svg { width:13px; height:13px; fill:currentColor; }
+#padGo .i-stop { display:none; }
+#padGo:hover { color:var(--sol-tx); border-color:var(--ink-mid); }
+#padGo:active { transform:translateY(1px); }
+#padGo.on { color:var(--amber); border-color:var(--amber-dim); background:var(--amber-faint); }
+#padGo.on i::before { opacity:.8; }
+#padGo.on .i-go { display:none; }
+#padGo.on .i-stop { display:block; }
+
+/* short windows: a laptop with its browser chrome, a phone held sideways */
+@media (max-height:720px) {
+  :root { --b:48px; --gap:10px; }
+  #instrument { grid-template-rows:minmax(0, 1.5fr) minmax(150px, 1fr); }
+  .rail { padding:8px 14px 10px; }
+  .take, .empty { height:50px; }
+  .take { grid-template-columns:34px minmax(0, 1fr); width:164px; }
+  .take svg.ros { width:34px; height:34px; }
+  #pad .say { bottom:10px; }
+  #pad .say p + p { display:none !important; }
+}
+@media (max-height:520px) and (orientation:landscape) {
+  :root { --b:42px; }
+  #instrument { width:calc(100% - 2 * var(--m)); grid-template-rows:minmax(0, 1fr); grid-template-columns:minmax(0, 1.2fr) minmax(0, 1fr); }
+  .readout { display:none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pane > svg.frame path { animation:none; stroke-dashoffset:0; }
+  .rise, .take, .tb-set > *, .tray > button { animation:none; }
+}
+</style>
+</head>
+<body>
+<div id="solosCRT" aria-hidden="true"></div>
+<div class="corner-band" aria-hidden="true"></div>
+<a class="corner" id="homeBtn" href="https://asynchronousinstruments.com/">asynchronous instruments</a>
+<div id="topRight"><div id="skinMenu"></div></div>
+
+<nav class="topbar" id="topbar" aria-label="Tools">
+  <div class="tb-set" id="tbSet">
+    <button class="tb" id="tbTakes" type="button" data-tip="your takes" aria-label="Your takes" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4.5 15.5v-3.5a7.5 7.5 0 0 1 15 0v3.5"/><rect x="3.5" y="14" width="4" height="6.5" rx="1.6"/><rect x="16.5" y="14" width="4" height="6.5" rx="1.6"/></svg></button>
+    <span class="tb-sep"></span>
+    <span class="tb-grp" id="tbRecSet">
+      <button class="tb" id="tbArm" type="button" data-tip="arm" aria-label="Arm"><svg viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="10.5" rx="3"/><path d="M5.6 11.2a6.4 6.4 0 0 0 12.8 0M12 17.6v3"/></svg></button>
+      <button class="tb" id="tbRec" type="button" data-tip="record" aria-label="Record"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg></button>
+      <button class="tb" id="tbPause" type="button" data-tip="pause" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M8.5 5.5v13M15.5 5.5v13"/></svg></button>
+      <button class="tb" id="tbStop" type="button" data-tip="stop" aria-label="Stop"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.6"/></svg></button>
+    </span>
+    <span class="tb-grp" id="tbLisSet" hidden>
+      <button class="tb" id="tbPlay" type="button" data-tip="play" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="tb" id="tbLPause" type="button" data-tip="pause" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M8.5 5.5v13M15.5 5.5v13"/></svg></button>
+      <button class="tb" id="tbLStop" type="button" data-tip="stop" aria-label="Stop"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.6"/></svg></button>
+    </span>
+    <span class="tb-time"><span class="lamp" id="lamp" aria-hidden="true"></span><span class="clock" id="clock" aria-live="off">0:00</span></span>
+    <span class="tb-sep"></span>
+    <button class="tb" id="tbShape" type="button" data-tray="shape" data-tip="the shape" aria-label="The shape" aria-haspopup="true"></button>
+    <button class="tb" id="tbDial" type="button" data-tray="dial" data-tip="the dial's time" aria-label="The dial's time" aria-haspopup="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.8V12l3.4 2.2"/></svg><span class="lab" id="tbDialLab">1m</span></button>
+    <button class="tb" id="tbPace" type="button" data-tray="pace" data-tip="the guide's pace" aria-label="The guide's pace" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M9.2 3.5h5.6l3.7 17h-13z"/><path d="M12 16.2l4.2-9.4M7.4 14.6h9.2"/></svg></button>
+    <button class="tb" id="tbEar" type="button" data-tip="hear my breath" aria-label="Hear my breath" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M7.6 9.8a4.6 4.6 0 1 1 8.6 2.3c-.9 1.5-2.4 2.2-2.9 3.9-.4 1.4-.9 3.5-3.1 3.5-1.4 0-2.3-.9-2.6-2"/><path d="M10.2 10.2a1.8 1.8 0 1 1 3.1 1.2"/><path d="M19.4 6.2c1 1.2 1.6 2.7 1.6 4.4M3.2 6.6C2.6 7.6 2.3 8.7 2.3 9.9"/></svg></button>
+  </div>
+</nav>
+<div class="tray" id="tray" role="menu" hidden></div>
+<div class="tb-tip" id="tbTip" aria-hidden="true"></div>
+
+<main id="instrument">
+  <section class="pane" id="gauge" aria-label="The breath">
+    <div class="stage" id="stage">
+      <canvas id="cv" aria-hidden="true"></canvas>
+      <div class="hub" id="hub"></div>
+    </div>
+    <div class="readout" id="readout" aria-live="polite"></div>
+    <div class="rail rise" id="rail" aria-label="Your takes"></div>
+  </section>
+
+  <section class="pane" id="pad" tabindex="0" role="button" aria-label="Hold to breathe in. Let go to breathe out.">
+    <canvas id="bellows" aria-hidden="true"></canvas>
+    <span class="plate rise" id="plate">bellows</span>
+    <button type="button" id="padGo" class="rise" aria-label="Start the guide"><span id="padPace">4 · 6</span><i><svg class="i-go" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg class="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></i></button>
+    <div class="say rise">
+      <p id="sayLine">Hold to breathe in. Let go to breathe out.</p>
+      <p>The space bar works too.</p>
+    </div>
+  </section>
+</main>
+
+<script src="local/local-supabase.js"></script>
+<script src="local/local.js"></script>
+<script src="shared/balatro-ground.js?v=1790578121"></script>
+<script>
+  SKIN_KIT.menu(document.getElementById('skinMenu'));
+  SKIN_KIT.ground();
+</script>
+<script src="./shapes.js?v=1791909553"></script>
+<script src="./breath.js?v=1791909553"></script>
+</body>
+</html>
